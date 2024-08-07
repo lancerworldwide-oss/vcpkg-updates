@@ -1,16 +1,12 @@
- CMakeLists.txt  | 237 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- Config.cmake.in |   5 ++
- 2 files changed, 242 insertions(+)
-
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 new file mode 100644
-index 00000000..03d08697
+index 00000000..b679c048
 --- /dev/null
 +++ b/CMakeLists.txt
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,258 @@
 +cmake_minimum_required(VERSION 3.20)
 +
-+project(angelscript VERSION 2.37.0)
++project(AngelScript VERSION 2.37.0)
 +
 +find_package(Threads REQUIRED)
 +include(CMakePackageConfigHelpers)
@@ -164,8 +160,8 @@ index 00000000..03d08697
 +if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
 +  enable_language(ASM)
 +  if(CMAKE_ASM_COMPILER_WORKS)
-+    set(SOURCES ${SOURCES} 
-+      sdk/angelscript/source/as_callfunc_arm.cpp 
++    set(SOURCES ${SOURCES}
++      sdk/angelscript/source/as_callfunc_arm.cpp
 +      sdk/angelscript/source/as_callfunc_arm_gcc.S
 +    )
 +    set_property(SOURCE sdk/angelscript/source/as_callfunc_arm_gcc.S APPEND PROPERTY COMPILE_FLAGS " -Wa,-mimplicit-it=always")
@@ -177,8 +173,8 @@ index 00000000..03d08697
 +if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
 +  enable_language(ASM)
 +  if(CMAKE_ASM_COMPILER_WORKS)
-+    set(SOURCES ${SOURCES} 
-+      sdk/angelscript/source/as_callfunc_arm64.cpp 
++    set(SOURCES ${SOURCES}
++      sdk/angelscript/source/as_callfunc_arm64.cpp
 +      sdk/angelscript/source/as_callfunc_arm64_gcc.S
 +    )
 +    message("Building aarch")
@@ -187,69 +183,90 @@ index 00000000..03d08697
 +  endif()
 +endif()
 +
-+add_library(angelscript STATIC ${SOURCES})
++add_library(AngelScript STATIC ${SOURCES})
 +
-+target_compile_definitions(angelscript PUBLIC AS_USE_NAMESPACE)
++target_compile_definitions(AngelScript PUBLIC AS_USE_NAMESPACE)
 +
-+target_include_directories(angelscript PUBLIC 
++target_include_directories(AngelScript PUBLIC
 +  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/sdk/angelscript/include>
 +  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/sdk/add_on>
 +  $<INSTALL_INTERFACE:include>
 +)
 +
-+target_link_libraries(angelscript PRIVATE Threads::Threads)
-+ 
-+set_target_properties(angelscript PROPERTIES VERSION ${PROJECT_VERSION})
++target_link_libraries(AngelScript PRIVATE Threads::Threads)
 +
-+add_library(angelscript::angelscript ALIAS angelscript)
++set_target_properties(AngelScript PROPERTIES VERSION ${PROJECT_VERSION})
 +
-+install(FILES sdk/angelscript/include/angelscript.h DESTINATION include/angelscript)
-+install(FILES sdk/add_on/autowrapper/aswrappedcall.h DESTINATION include/angelscript/autowrapper)
-+install(FILES sdk/add_on/contextmgr/contextmgr.h DESTINATION include/angelscript/contextmgr)
-+install(FILES sdk/add_on/datetime/datetime.h DESTINATION include/angelscript/datetime)
-+install(FILES sdk/add_on/debugger/debugger.h DESTINATION include/angelscript/debugger)
-+install(FILES sdk/add_on/scriptany/scriptany.h DESTINATION include/angelscript/scriptany)
-+install(FILES sdk/add_on/scriptarray/scriptarray.h DESTINATION include/angelscript/scriptarray)
-+install(FILES sdk/add_on/scriptbuilder/scriptbuilder.h DESTINATION include/angelscript/scriptbuilder)
-+install(FILES sdk/add_on/scriptdictionary/scriptdictionary.h DESTINATION include/angelscript/scriptdictionary)
-+install(FILES sdk/add_on/scriptfile/scriptfile.h DESTINATION include/angelscript/scriptfile)
-+install(FILES sdk/add_on/scriptfile/scriptfilesystem.h DESTINATION include/angelscript/scriptfile)
-+install(FILES sdk/add_on/scriptgrid/scriptgrid.h DESTINATION include/angelscript/scriptgrid)
-+install(FILES sdk/add_on/scripthandle/scripthandle.h DESTINATION include/angelscript/scripthandle)
-+install(FILES sdk/add_on/scripthelper/scripthelper.h DESTINATION include/angelscript/scripthelper)
-+install(FILES sdk/add_on/scriptmath/scriptmath.h DESTINATION include/angelscript/scriptmath)
-+install(FILES sdk/add_on/scriptmath/scriptmathcomplex.h DESTINATION include/angelscript/scriptmath)
-+install(FILES sdk/add_on/scriptstdstring/scriptstdstring.h DESTINATION include/angelscript/scriptstdstring)
-+install(FILES sdk/add_on/serializer/serializer.h DESTINATION include/angelscript/serializer)
-+install(FILES sdk/add_on/weakref/weakref.h DESTINATION include/angelscript/weakref)
++add_library(AngelScript::AngelScript ALIAS AngelScript)
 +
-+install(TARGETS angelscript EXPORT AngelScriptTargets DESTINATION lib)
 +
-+install(EXPORT AngelScriptTargets NAMESPACE angelscript:: DESTINATION lib/cmake/angelscript)
++install(TARGETS AngelScript
++  EXPORT AngelScriptTargets
++       RUNTIME DESTINATION bin
++  LIBRARY DESTINATION lib
++  ARCHIVE DESTINATION lib
++  INCLUDES DESTINATION include
++  )
++
++install(FILES sdk/angelscript/include/angelscript.h DESTINATION include/angelscript COMPONENT Devel)
++install(FILES sdk/add_on/autowrapper/aswrappedcall.h DESTINATION include/angelscript/autowrapper COMPONENT Devel)
++install(FILES sdk/add_on/contextmgr/contextmgr.h DESTINATION include/angelscript/contextmgr COMPONENT Devel)
++install(FILES sdk/add_on/datetime/datetime.h DESTINATION include/angelscript/datetime COMPONENT Devel)
++install(FILES sdk/add_on/debugger/debugger.h DESTINATION include/angelscript/debugger COMPONENT Devel)
++install(FILES sdk/add_on/scriptany/scriptany.h DESTINATION include/angelscript/scriptany COMPONENT Devel)
++install(FILES sdk/add_on/scriptarray/scriptarray.h DESTINATION include/angelscript/scriptarray COMPONENT Devel)
++install(FILES sdk/add_on/scriptbuilder/scriptbuilder.h DESTINATION include/angelscript/scriptbuilder COMPONENT Devel)
++install(FILES sdk/add_on/scriptdictionary/scriptdictionary.h DESTINATION include/angelscript/scriptdictionary COMPONENT Devel)
++install(FILES sdk/add_on/scriptfile/scriptfile.h DESTINATION include/angelscript/scriptfile COMPONENT Devel)
++install(FILES sdk/add_on/scriptfile/scriptfilesystem.h DESTINATION include/angelscript/scriptfile COMPONENT Devel)
++install(FILES sdk/add_on/scriptgrid/scriptgrid.h DESTINATION include/angelscript/scriptgrid COMPONENT Devel)
++install(FILES sdk/add_on/scripthandle/scripthandle.h DESTINATION include/angelscript/scripthandle COMPONENT Devel)
++install(FILES sdk/add_on/scripthelper/scripthelper.h DESTINATION include/angelscript/scripthelper COMPONENT Devel)
++install(FILES sdk/add_on/scriptmath/scriptmath.h DESTINATION include/angelscript/scriptmath COMPONENT Devel)
++install(FILES sdk/add_on/scriptmath/scriptmathcomplex.h DESTINATION include/angelscript/scriptmath COMPONENT Devel)
++install(FILES sdk/add_on/scriptstdstring/scriptstdstring.h DESTINATION include/angelscript/scriptstdstring COMPONENT Devel)
++install(FILES sdk/add_on/serializer/serializer.h DESTINATION include/angelscript/serializer COMPONENT Devel)
++install(FILES sdk/add_on/weakref/weakref.h DESTINATION include/angelscript/weakref COMPONENT Devel)
++
++
++
++write_basic_package_version_file(
++  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfigVersion.cmake"
++  VERSION ${PROJECT_VERSION}
++  COMPATIBILITY AnyNewerVersion
++)
++
++export(EXPORT AngelScriptTargets
++  FILE "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake"
++  NAMESPACE Angelscript::
++  )
++
 +
 +configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-+  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake"
-+  INSTALL_DESTINATION "lib/cmake/angelscript"
++  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfig.cmake"
++  INSTALL_DESTINATION "lib/cmake/AngelScript"
 +  NO_SET_AND_CHECK_MACRO
 +  NO_CHECK_REQUIRED_COMPONENTS_MACRO
 +  )
 +
-+write_basic_package_version_file(
-+  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfig.cmake"
-+  VERSION "${PROJECT_VERSION}"
-+  COMPATIBILITY AnyNewerVersion
++  install(EXPORT AngelScriptTargets
++    FILE AngelScriptTargets.cmake
++    NAMESPACE AngelScript::
++    COMPONENT AngelScript
++    DESTINATION lib/cmake/AngelScript
 +)
-+install(FILES  
++
++install(FILES
 +  ${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake
 +  ${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfig.cmake
-+  DESTINATION lib/cmake/angelscript
++  DESTINATION lib/cmake/AngelScript
 +)
-+export(EXPORT AngelScriptTargets FILE "${PROJECT_BINARY_DIR}/AngelScriptTargets.cmake")
-diff --git a/Config.cmake.in b/Config.cmake.in
++
+diff --git a/Config.cmake.txt b/Config.cmake.txt
 new file mode 100644
 index 00000000..1cc6327e
 --- /dev/null
-+++ b/Config.cmake.in
++++ b/Config.cmake.txt
 @@ -0,0 +1,5 @@
 +@PACKAGE_INIT@
 +
