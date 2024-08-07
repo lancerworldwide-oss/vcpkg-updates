@@ -1,0 +1,258 @@
+ CMakeLists.txt  | 237 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Config.cmake.in |   5 ++
+ 2 files changed, 242 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 00000000..03d08697
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,237 @@
++cmake_minimum_required(VERSION 3.20)
++
++project(angelscript VERSION 2.37.0)
++
++find_package(Threads REQUIRED)
++include(CMakePackageConfigHelpers)
++
++set(HEADERS
++  sdk/angelscript/include/angelscript.h
++  sdk/add_on/autowrapper/aswrappedcall.h
++  sdk/add_on/contextmgr/contextmgr.h
++  sdk/add_on/datetime/datetime.h
++  sdk/add_on/debugger/debugger.h
++  sdk/add_on/scriptany/scriptany.h
++  sdk/add_on/scriptarray/scriptarray.h
++  sdk/add_on/scriptbuilder/scriptbuilder.h
++  sdk/add_on/scriptdictionary/scriptdictionary.h
++  sdk/add_on/scriptfile/scriptfile.h
++  sdk/add_on/scriptfile/scriptfilesystem.h
++  sdk/add_on/scriptgrid/scriptgrid.h
++  sdk/add_on/scripthandle/scripthandle.h
++  sdk/add_on/scripthelper/scripthelper.h
++  sdk/add_on/scriptmath/scriptmath.h
++  sdk/add_on/scriptmath/scriptmathcomplex.h
++  sdk/add_on/scriptstdstring/scriptstdstring.h
++  sdk/add_on/serializer/serializer.h
++  sdk/add_on/weakref/weakref.h
++)
++set(SOURCES
++  sdk/add_on/autowrapper/aswrappedcall.h
++  sdk/add_on/autowrapper/generator/generateheader.cpp
++  sdk/add_on/contextmgr/contextmgr.cpp
++  sdk/add_on/contextmgr/contextmgr.h
++  sdk/add_on/datetime/datetime.cpp
++  sdk/add_on/datetime/datetime.h
++  sdk/add_on/debugger/debugger.cpp
++  sdk/add_on/debugger/debugger.h
++  sdk/add_on/scriptany/scriptany.cpp
++  sdk/add_on/scriptany/scriptany.h
++  sdk/add_on/scriptarray/scriptarray.cpp
++  sdk/add_on/scriptarray/scriptarray.h
++  sdk/add_on/scriptbuilder/scriptbuilder.cpp
++  sdk/add_on/scriptbuilder/scriptbuilder.h
++  sdk/add_on/scriptdictionary/scriptdictionary.cpp
++  sdk/add_on/scriptdictionary/scriptdictionary.h
++  sdk/add_on/scriptfile/scriptfile.cpp
++  sdk/add_on/scriptfile/scriptfile.h
++  sdk/add_on/scriptfile/scriptfilesystem.cpp
++  sdk/add_on/scriptfile/scriptfilesystem.h
++  sdk/add_on/scriptgrid/scriptgrid.cpp
++  sdk/add_on/scriptgrid/scriptgrid.h
++  sdk/add_on/scripthandle/scripthandle.cpp
++  sdk/add_on/scripthandle/scripthandle.h
++  sdk/add_on/scripthelper/scripthelper.cpp
++  sdk/add_on/scripthelper/scripthelper.h
++  sdk/add_on/scriptmath/scriptmath.cpp
++  sdk/add_on/scriptmath/scriptmath.h
++  sdk/add_on/scriptmath/scriptmathcomplex.cpp
++  sdk/add_on/scriptmath/scriptmathcomplex.h
++  sdk/add_on/scriptstdstring/scriptstdstring.cpp
++  sdk/add_on/scriptstdstring/scriptstdstring.h
++  sdk/add_on/scriptstdstring/scriptstdstring_utils.cpp
++  sdk/add_on/serializer/serializer.cpp
++  sdk/add_on/serializer/serializer.h
++  sdk/add_on/weakref/weakref.cpp
++  sdk/add_on/weakref/weakref.h
++  sdk/angelscript/source/as_array.h
++  sdk/angelscript/source/as_atomic.cpp
++  sdk/angelscript/source/as_atomic.h
++  sdk/angelscript/source/as_builder.cpp
++  sdk/angelscript/source/as_builder.h
++  sdk/angelscript/source/as_bytecode.cpp
++  sdk/angelscript/source/as_bytecode.h
++  sdk/angelscript/source/as_callfunc.cpp
++  sdk/angelscript/source/as_callfunc.h
++  sdk/angelscript/source/as_callfunc_arm.cpp
++  sdk/angelscript/source/as_callfunc_arm64.cpp
++  sdk/angelscript/source/as_callfunc_mips.cpp
++  sdk/angelscript/source/as_callfunc_ppc.cpp
++  sdk/angelscript/source/as_callfunc_ppc_64.cpp
++  sdk/angelscript/source/as_callfunc_sh4.cpp
++  sdk/angelscript/source/as_callfunc_x64_gcc.cpp
++  sdk/angelscript/source/as_callfunc_x64_mingw.cpp
++  sdk/angelscript/source/as_callfunc_x64_msvc.cpp
++  sdk/angelscript/source/as_callfunc_x86.cpp
++  sdk/angelscript/source/as_callfunc_xenon.cpp
++  sdk/angelscript/source/as_compiler.cpp
++  sdk/angelscript/source/as_compiler.h
++  sdk/angelscript/source/as_config.h
++  sdk/angelscript/source/as_configgroup.cpp
++  sdk/angelscript/source/as_configgroup.h
++  sdk/angelscript/source/as_context.cpp
++  sdk/angelscript/source/as_context.h
++  sdk/angelscript/source/as_criticalsection.h
++  sdk/angelscript/source/as_datatype.cpp
++  sdk/angelscript/source/as_datatype.h
++  sdk/angelscript/source/as_debug.h
++  sdk/angelscript/source/as_gc.cpp
++  sdk/angelscript/source/as_gc.h
++  sdk/angelscript/source/as_generic.cpp
++  sdk/angelscript/source/as_generic.h
++  sdk/angelscript/source/as_globalproperty.cpp
++  sdk/angelscript/source/as_map.h
++  sdk/angelscript/source/as_memory.cpp
++  sdk/angelscript/source/as_memory.h
++  sdk/angelscript/source/as_module.cpp
++  sdk/angelscript/source/as_module.h
++  sdk/angelscript/source/as_namespace.h
++  sdk/angelscript/source/as_objecttype.cpp
++  sdk/angelscript/source/as_objecttype.h
++  sdk/angelscript/source/as_outputbuffer.cpp
++  sdk/angelscript/source/as_outputbuffer.h
++  sdk/angelscript/source/as_parser.cpp
++  sdk/angelscript/source/as_parser.h
++  sdk/angelscript/source/as_property.h
++  sdk/angelscript/source/as_restore.cpp
++  sdk/angelscript/source/as_restore.h
++  sdk/angelscript/source/as_scriptcode.cpp
++  sdk/angelscript/source/as_scriptcode.h
++  sdk/angelscript/source/as_scriptengine.cpp
++  sdk/angelscript/source/as_scriptengine.h
++  sdk/angelscript/source/as_scriptfunction.cpp
++  sdk/angelscript/source/as_scriptfunction.h
++  sdk/angelscript/source/as_scriptnode.cpp
++  sdk/angelscript/source/as_scriptnode.h
++  sdk/angelscript/source/as_scriptobject.cpp
++  sdk/angelscript/source/as_scriptobject.h
++  sdk/angelscript/source/as_string.cpp
++  sdk/angelscript/source/as_string.h
++  sdk/angelscript/source/as_string_util.cpp
++  sdk/angelscript/source/as_string_util.h
++  sdk/angelscript/source/as_symboltable.h
++  sdk/angelscript/source/as_texts.h
++  sdk/angelscript/source/as_thread.cpp
++  sdk/angelscript/source/as_thread.h
++  sdk/angelscript/source/as_tokendef.h
++  sdk/angelscript/source/as_tokenizer.cpp
++  sdk/angelscript/source/as_tokenizer.h
++  sdk/angelscript/source/as_typeinfo.cpp
++  sdk/angelscript/source/as_typeinfo.h
++  sdk/angelscript/source/as_variablescope.cpp
++  sdk/angelscript/source/as_variablescope.h
++)
++
++if(MSVC AND CMAKE_CL_64)
++  enable_language(ASM_MASM)
++  if(CMAKE_ASM_MASM_COMPILER_WORKS)
++    set(SOURCES ${SOURCES} sdk/angelscript/source/as_callfunc_x64_msvc_asm.asm)
++  else()
++    message(FATAL ERROR "MSVC x86_64 target requires a working assembler")
++  endif()
++endif()
++
++if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm")
++  enable_language(ASM)
++  if(CMAKE_ASM_COMPILER_WORKS)
++    set(SOURCES ${SOURCES} 
++      sdk/angelscript/source/as_callfunc_arm.cpp 
++      sdk/angelscript/source/as_callfunc_arm_gcc.S
++    )
++    set_property(SOURCE sdk/angelscript/source/as_callfunc_arm_gcc.S APPEND PROPERTY COMPILE_FLAGS " -Wa,-mimplicit-it=always")
++  else()
++    message(FATAL ERROR "ARM target requires a working assembler")
++  endif()
++endif()
++
++if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
++  enable_language(ASM)
++  if(CMAKE_ASM_COMPILER_WORKS)
++    set(SOURCES ${SOURCES} 
++      sdk/angelscript/source/as_callfunc_arm64.cpp 
++      sdk/angelscript/source/as_callfunc_arm64_gcc.S
++    )
++    message("Building aarch")
++  else()
++    message(FATAL ERROR "ARM target requires a working assembler")
++  endif()
++endif()
++
++add_library(angelscript STATIC ${SOURCES})
++
++target_compile_definitions(angelscript PUBLIC AS_USE_NAMESPACE)
++
++target_include_directories(angelscript PUBLIC 
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/sdk/angelscript/include>
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/sdk/add_on>
++  $<INSTALL_INTERFACE:include>
++)
++
++target_link_libraries(angelscript PRIVATE Threads::Threads)
++ 
++set_target_properties(angelscript PROPERTIES VERSION ${PROJECT_VERSION})
++
++add_library(angelscript::angelscript ALIAS angelscript)
++
++install(FILES sdk/angelscript/include/angelscript.h DESTINATION include/angelscript)
++install(FILES sdk/add_on/autowrapper/aswrappedcall.h DESTINATION include/angelscript/autowrapper)
++install(FILES sdk/add_on/contextmgr/contextmgr.h DESTINATION include/angelscript/contextmgr)
++install(FILES sdk/add_on/datetime/datetime.h DESTINATION include/angelscript/datetime)
++install(FILES sdk/add_on/debugger/debugger.h DESTINATION include/angelscript/debugger)
++install(FILES sdk/add_on/scriptany/scriptany.h DESTINATION include/angelscript/scriptany)
++install(FILES sdk/add_on/scriptarray/scriptarray.h DESTINATION include/angelscript/scriptarray)
++install(FILES sdk/add_on/scriptbuilder/scriptbuilder.h DESTINATION include/angelscript/scriptbuilder)
++install(FILES sdk/add_on/scriptdictionary/scriptdictionary.h DESTINATION include/angelscript/scriptdictionary)
++install(FILES sdk/add_on/scriptfile/scriptfile.h DESTINATION include/angelscript/scriptfile)
++install(FILES sdk/add_on/scriptfile/scriptfilesystem.h DESTINATION include/angelscript/scriptfile)
++install(FILES sdk/add_on/scriptgrid/scriptgrid.h DESTINATION include/angelscript/scriptgrid)
++install(FILES sdk/add_on/scripthandle/scripthandle.h DESTINATION include/angelscript/scripthandle)
++install(FILES sdk/add_on/scripthelper/scripthelper.h DESTINATION include/angelscript/scripthelper)
++install(FILES sdk/add_on/scriptmath/scriptmath.h DESTINATION include/angelscript/scriptmath)
++install(FILES sdk/add_on/scriptmath/scriptmathcomplex.h DESTINATION include/angelscript/scriptmath)
++install(FILES sdk/add_on/scriptstdstring/scriptstdstring.h DESTINATION include/angelscript/scriptstdstring)
++install(FILES sdk/add_on/serializer/serializer.h DESTINATION include/angelscript/serializer)
++install(FILES sdk/add_on/weakref/weakref.h DESTINATION include/angelscript/weakref)
++
++install(TARGETS angelscript EXPORT AngelScriptTargets DESTINATION lib)
++
++install(EXPORT AngelScriptTargets NAMESPACE angelscript:: DESTINATION lib/cmake/angelscript)
++
++configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
++  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake"
++  INSTALL_DESTINATION "lib/cmake/angelscript"
++  NO_SET_AND_CHECK_MACRO
++  NO_CHECK_REQUIRED_COMPONENTS_MACRO
++  )
++
++write_basic_package_version_file(
++  "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfig.cmake"
++  VERSION "${PROJECT_VERSION}"
++  COMPATIBILITY AnyNewerVersion
++)
++install(FILES  
++  ${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake
++  ${CMAKE_CURRENT_BINARY_DIR}/AngelScriptConfig.cmake
++  DESTINATION lib/cmake/angelscript
++)
++export(EXPORT AngelScriptTargets FILE "${PROJECT_BINARY_DIR}/AngelScriptTargets.cmake")
+diff --git a/Config.cmake.in b/Config.cmake.in
+new file mode 100644
+index 00000000..1cc6327e
+--- /dev/null
++++ b/Config.cmake.in
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include ( "${CMAKE_CURRENT_LIST_DIR}/AngelScriptTargets.cmake" )
++include(CMakeFindDependencyMacro)
++find_dependency(Threads REQUIRED)
