@@ -262,11 +262,11 @@ index 00000000..b679c048
 +  DESTINATION lib/cmake/AngelScript
 +)
 +
-diff --git a/Config.cmake.txt b/Config.cmake.txt
+diff --git a/Config.cmake.in b/Config.cmake.in
 new file mode 100644
 index 00000000..1cc6327e
 --- /dev/null
-+++ b/Config.cmake.txt
++++ b/Config.cmake.in
 @@ -0,0 +1,5 @@
 +@PACKAGE_INIT@
 +
