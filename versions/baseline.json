@@ -1,6 +1,6 @@
 {
   "default": {
-    "angelscript2": {
+    "angelscript": {
       "baseline": "2.37.0",
       "port-version": 0
     }
