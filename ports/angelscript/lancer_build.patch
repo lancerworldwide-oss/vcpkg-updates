@@ -1,6 +1,6 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 new file mode 100644
-index 00000000..b679c048
+index 00000000..cd4d14c6
 --- /dev/null
 +++ b/CMakeLists.txt
 @@ -0,0 +1,258 @@
@@ -238,7 +238,7 @@ index 00000000..b679c048
 +
 +export(EXPORT AngelScriptTargets
 +  FILE "${CMAKE_CURRENT_BINARY_DIR}/AngelScriptTargets.cmake"
-+  NAMESPACE Angelscript::
++  NAMESPACE AngelScript::
 +  )
 +
 +
