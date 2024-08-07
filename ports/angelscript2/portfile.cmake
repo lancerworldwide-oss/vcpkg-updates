@@ -1,4 +1,4 @@
-vcpkg_extract_source_archive(
+vcpkg_from_git(
     OUT_SOURCE_PATH SOURCE_PATH
     URL ssh://git@engineering.lancerworldwide.com:7990/extern/angelscript.git
     REF 1e0a872a9d5d6c2890dba6250d94feb667db6d29
