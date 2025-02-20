@@ -1,5 +1,5 @@
 {
-  "name": "cppotp",
+  "name": "cpptotp",
   "version": "2013.11.19",
   "description": "C++ implementation of TOTP (time-based one-time password) authentication",
   "homepage": "https://github.com/RavuAlHemio/cpptotp",
