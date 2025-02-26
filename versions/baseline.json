@@ -7,6 +7,10 @@
     "cpptotp": {
       "baseline": "2013.11.19",
       "port-version": 0
+    },
+    "libstatgrab":{
+      "baseline": "0.92.1",
+      "port-version": 0
     }
   }
 }
