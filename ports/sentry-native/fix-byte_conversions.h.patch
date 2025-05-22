@@ -2,7 +2,7 @@ diff --git a/external/crashpad/third_party/mini_chromium/mini_chromium/base/nume
 index 7d76024..e238a25 100644
 --- a/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h
 +++ b/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h
-@@ -17,6 +17,28 @@
+@@ -17,6 +17,34 @@
  // Chromium only builds and runs on Little Endian machines.
  static_assert(ARCH_CPU_LITTLE_ENDIAN);
  
