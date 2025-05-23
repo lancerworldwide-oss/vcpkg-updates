@@ -1,12 +1,16 @@
 diff --git a/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h b/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h
-index 7d76024..9f2003e 100644
+index 7d76024..e238a25 100644
 --- a/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h
 +++ b/external/crashpad/third_party/mini_chromium/mini_chromium/base/numerics/byte_conversions.h
-@@ -17,6 +17,28 @@
+@@ -17,6 +17,34 @@
  // Chromium only builds and runs on Little Endian machines.
  static_assert(ARCH_CPU_LITTLE_ENDIAN);
  
-+#if !(__cplusplus > 201703l && __has_builtin(__builtin_bit_cast))
++// Patch in case the compiler doesn't have std::bit_cast
++// Adapted from https://en.cppreference.com/w/cpp/numeric/bit_cast
++#ifndef _MSVC_VER
++  #ifndef __cpp_lib_bit_cast
++    #if __cplusplus <= 201703l
 +namespace std{
 +  template<class To, class From>
 +  std::enable_if_t<
@@ -26,7 +30,9 @@ index 7d76024..9f2003e 100644
 +    return dst;
 +  }
 +} // namespace std
-+#endif
++    #endif  //__cplusplus
++  #endif // __cpp_lib_bit_cast
++#endif // _MSVC_VER
 +
  namespace base::numerics {
  
