@@ -122,3 +122,29 @@ file(REMOVE_RECURSE
 
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENCE.txt")
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/benchmark/assets"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/music/assets/png/272_png"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/music/assets/png/480_png"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/render/assets"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/vector_graphic/assets"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/demos/widgets/assets/font"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/arduino/LVGL_Arduino"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/assets/emoji"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/get_started/get_started_hello_world"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/get_started/get_started_slider"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/get_started/get_started_styles"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/libs/qrcode/qrcode_basic"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/xml_project/fonts"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl/examples/xml_project/images"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/drivers/display/mipi"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/drivers/opengles/glad/src"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/font/tiny_ttf"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/libs/gltf/fastgltf"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/logging"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/stdlib/clib"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/stdlib/micropython"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/stdlib/rtthread"
+    "${CURRENT_PACKAGES_DIR}/include/lvgl_private/stdlib/uefi"
+)
