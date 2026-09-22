@@ -1,0 +1,25 @@
+{
+  "name": "lvgl",
+  "version": "9.6.0",
+  "description": "Light and Versatile Graphics Library - a free and open-source graphics library providing everything you need to create an embedded GUI with easy-to-use graphical elements, beautiful visual effects and a low memory footprint.",
+  "homepage": "https://lvgl.io",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "demos": {
+      "description": "Build and install LVGL demos"
+    },
+    "examples": {
+      "description": "Build and install LVGL examples"
+    }
+  }
+}
