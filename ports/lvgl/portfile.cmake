@@ -15,18 +15,89 @@ if("demos" IN_LIST FEATURES OR "examples" IN_LIST FEATURES)
     set(PRIVATE_API_OPTION "-DCONFIG_LV_USE_PRIVATE_API=ON")
 endif()
 
+set(LV_CONF_H "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-lv_conf.h")
+
+if(VCPKG_TARGET_IS_EMSCRIPTEN)
+    file(WRITE "${LV_CONF_H}" [[
+#ifndef LV_CONF_H
+#define LV_CONF_H
+#endif
+]])
+    set(LVGL_DRIVER_OPTIONS
+        -DLV_USE_FIND_PACKAGE_SDL2=OFF
+    )
+elseif(VCPKG_TARGET_IS_WINDOWS)
+    file(WRITE "${LV_CONF_H}" [[
+#ifndef LV_CONF_H
+#define LV_CONF_H
+#define LV_USE_SDL 1
+#define LV_SDL_DIRECT_EXIT 0
+#define LV_USE_WINDOWS 1
+#endif
+]])
+    set(LVGL_DRIVER_OPTIONS
+        -DLV_USE_FIND_PACKAGE_SDL2=ON
+    )
+elseif(VCPKG_TARGET_IS_LINUX)
+    file(WRITE "${LV_CONF_H}" [[
+#ifndef LV_CONF_H
+#define LV_CONF_H
+#define LV_USE_SDL 1
+#define LV_SDL_DIRECT_EXIT 0
+#define LV_USE_X11 1
+#define LV_USE_LINUX_DRM 1
+#define LV_USE_LINUX_FBDEV 1
+#define LV_USE_WAYLAND 1
+#define LV_WAYLAND_DIRECT_EXIT 0
+#define LV_USE_EVDEV 1
+#define LV_USE_LIBINPUT 1
+#define LV_LIBINPUT_XKB 1
+#endif
+]])
+    set(LVGL_DRIVER_OPTIONS
+        -DLV_USE_FIND_PACKAGE_SDL2=ON
+        -DLV_USE_PKG_CONFIG_X11=ON
+        -DLV_USE_PKG_CONFIG_LIBDRM=ON
+        -DLV_USE_PKG_CONFIG_WAYLAND=ON
+        -DLV_USE_PKG_CONFIG_EVDEV=ON
+        -DLV_USE_PKG_CONFIG_LIBINPUT=ON
+        -DLV_USE_PKG_CONFIG_XKBCOMMON=ON
+    )
+    if(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+        if(DEFINED ENV{PKG_CONFIG_PATH} AND NOT "$ENV{PKG_CONFIG_PATH}" STREQUAL "")
+            set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+        else()
+            set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
+        endif()
+    endif()
+else()
+    file(WRITE "${LV_CONF_H}" [[
+#ifndef LV_CONF_H
+#define LV_CONF_H
+#endif
+]])
+    set(LVGL_DRIVER_OPTIONS
+        -DLV_USE_FIND_PACKAGE_SDL2=OFF
+    )
+endif()
+
+vcpkg_find_acquire_program(PYTHON3)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         ${FEATURE_OPTIONS}
         ${PRIVATE_API_OPTION}
-        -DLV_CONF_SKIP=ON
+        ${LVGL_DRIVER_OPTIONS}
+        -DLV_CONF_SKIP=OFF
+        "-DLV_BUILD_CONF_PATH=${LV_CONF_H}"
         -DLV_BUILD_LVGL_H_SYSTEM_INCLUDE=ON
         -DLV_BUILD_TESTS=OFF
         -DLV_FETCH_DEPENDENCIES=OFF
         -DLV_USE_PKG_CONFIG=OFF
         -DCONFIG_LV_USE_THORVG=OFF
         -DCONFIG_LV_USE_THORVG_INTERNAL=OFF
+        "-DPython_EXECUTABLE=${PYTHON3}"
 )
 
 vcpkg_cmake_install()
