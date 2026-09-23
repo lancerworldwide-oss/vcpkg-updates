@@ -14,7 +14,7 @@
     },
     "lvgl": {
       "baseline": "9.6.0",
-      "port-version": 1
+      "port-version": 2
     },
     "sentry-native": {
       "baseline": "0.8.5.1",

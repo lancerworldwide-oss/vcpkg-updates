@@ -1,0 +1,14 @@
+--- a/src/drivers/sdl/lv_sdl_window.c
++++ b/src/drivers/sdl/lv_sdl_window.c
+@@ -260,7 +260,10 @@
+                 case SDL_WINDOWEVENT_TAKE_FOCUS:
+ #endif
+                 case SDL_WINDOWEVENT_EXPOSED:
+-                    lv_sdl_backend_ops.redraw(disp);
++                    /* Do not present here. On slow display paths (Docker/X11/software
++                     * GL), SDL_RenderPresent can generate further EXPOSED events that
++                     * are drained in this same SDL_PollEvent loop and livelock the UI
++                     * thread. Flush/refresh already presents dirty regions. */
+                     break;
+                 case SDL_WINDOWEVENT_RESIZED:
+                     dsc->ignore_size_chg = 1;
