@@ -32,7 +32,7 @@ elseif(VCPKG_TARGET_IS_WINDOWS)
     file(WRITE "${LV_CONF_H}" [[
 #ifndef LV_CONF_H
 #define LV_CONF_H
-#define LV_MEM_SIZE (2 * 1024U * 1024U)
+#define LV_MEM_SIZE (16 * 1024U * 1024U)
 #define LV_USE_SDL 1
 #define LV_SDL_DIRECT_EXIT 0
 #define LV_USE_WINDOWS 1
@@ -53,7 +53,7 @@ elseif(VCPKG_TARGET_IS_LINUX)
     file(WRITE "${LV_CONF_H}" [[
 #ifndef LV_CONF_H
 #define LV_CONF_H
-#define LV_MEM_SIZE (2 * 1024U * 1024U)
+#define LV_MEM_SIZE (16 * 1024U * 1024U)
 #define LV_USE_SDL 1
 #define LV_SDL_DIRECT_EXIT 0
 #define LV_USE_X11 1
