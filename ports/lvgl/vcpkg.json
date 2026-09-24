@@ -1,7 +1,7 @@
 {
   "name": "lvgl",
   "version": "9.6.0",
-  "port-version": 3,
+  "port-version": 4,
   "description": "Light and Versatile Graphics Library - a free and open-source graphics library providing everything you need to create an embedded GUI with easy-to-use graphical elements, beautiful visual effects and a low memory footprint.",
   "homepage": "https://lvgl.io",
   "license": "MIT",
