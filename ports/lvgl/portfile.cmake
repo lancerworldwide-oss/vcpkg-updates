@@ -4,6 +4,7 @@ vcpkg_from_git(
     REF "80ca777e37a2b176770726a02e07a6fb79ef0b39"
     PATCHES
         patches/0001-sdl-skip-expose-redraw.patch
+        patches/0002-sdl-follow-window-size.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS

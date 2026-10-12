@@ -1,0 +1,46 @@
+--- a/src/drivers/sdl/lv_sdl_window.c
++++ b/src/drivers/sdl/lv_sdl_window.c
+@@ -265,7 +265,12 @@
+                      * are drained in this same SDL_PollEvent loop and livelock the UI
+                      * thread. Flush/refresh already presents dirty regions. */
+                     break;
+-                case SDL_WINDOWEVENT_RESIZED:
++                case SDL_WINDOWEVENT_SIZE_CHANGED:
++                    /* Also sent for this driver's own SDL_SetWindowSize calls, which already match */
++                    if(event.window.data1 == lv_sdl_window_get_horizontal_resolution(disp) &&
++                       event.window.data2 == lv_sdl_window_get_vertical_resolution(disp)) {
++                        break;
++                    }
+                     dsc->ignore_size_chg = 1;
+                     int32_t hres = (int32_t)((float)(event.window.data1) / dsc->zoom);
+                     int32_t vres = (int32_t)((float)(event.window.data2) / dsc->zoom);
+@@ -307,6 +312,11 @@
+     flag |= SDL_WINDOW_FULLSCREEN;
+ #endif
+ 
++#ifdef __EMSCRIPTEN__
++    /* SDL sizes a CSS-sized canvas from its CSS box, at creation and on every browser resize */
++    flag |= SDL_WINDOW_RESIZABLE;
++#endif
++
+     int32_t hor_res = (int32_t)((float)(disp->hor_res) * dsc->zoom);
+     int32_t ver_res = (int32_t)((float)(disp->ver_res) * dsc->zoom);
+     dsc->window = SDL_CreateWindow("LVGL Simulator",
+@@ -316,6 +326,17 @@
+         LV_LOG_ERROR("Failed to create SDL window: '%s'", SDL_GetError());
+         return LV_RESULT_INVALID;
+     }
++#ifdef __EMSCRIPTEN__
++    /* A CSS-sized canvas gives the window its CSS size, not the requested one */
++    int window_w;
++    int window_h;
++    SDL_GetWindowSize(dsc->window, &window_w, &window_h);
++    if(window_w > 0 && window_h > 0) {
++        hor_res = window_w;
++        ver_res = window_h;
++        lv_display_set_resolution(disp, hor_res, ver_res);
++    }
++#endif
+     if(lv_sdl_backend_ops.init_display(disp) != LV_RESULT_OK) {
+         LV_LOG_ERROR("Failed to initialize SDL backend");
+         SDL_DestroyWindow(dsc->window);
