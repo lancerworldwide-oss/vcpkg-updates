@@ -1,0 +1,26 @@
+{
+  "name": "lv",
+  "version": "0.1.0",
+  "description": "Zero-cost, type-safe C++20 wrapper for the LVGL embedded graphics library",
+  "homepage": "https://github.com/aptumfr/lv",
+  "license": "AGPL-3.0-only",
+  "dependencies": [
+    {
+      "name": "lvgl",
+      "version>=": "9.4.0"
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "std-function": {
+      "description": "Enable std::function callbacks (uses heap allocation)"
+    }
+  }
+}

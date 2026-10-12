@@ -12,6 +12,10 @@
       "baseline": "0.92.1",
       "port-version": 0
     },
+    "lv": {
+      "baseline": "0.1.0",
+      "port-version": 0
+    },
     "lvgl": {
       "baseline": "9.6.0",
       "port-version": 6

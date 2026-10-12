@@ -1,0 +1,62 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 93b59d2..de775ae 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -12,10 +12,13 @@ option(LV_BUILD_EXAMPLES "Build examples" ON)
+ option(LV_BUILD_DEMOS "Build demos" ON)
+ option(LV_BUILD_TESTS "Build tests" OFF)
+ 
+-# Find LVGL - expect it to be a sibling directory or provided via LVGL_DIR
+-if(NOT TARGET lvgl)
+-    if(DEFINED LVGL_DIR)
++# Find LVGL - expect it to be a sibling directory or provided via LVGL_DIR.
++# LVGL_DIR may be a source tree (CMakeLists.txt) or an installed prefix.
++if(NOT TARGET lvgl AND NOT TARGET lvgl::lvgl)
++    if(DEFINED LVGL_DIR AND EXISTS "${LVGL_DIR}/CMakeLists.txt")
+         add_subdirectory(${LVGL_DIR} ${CMAKE_BINARY_DIR}/lvgl)
++    elseif(DEFINED LVGL_DIR)
++        find_package(lvgl CONFIG REQUIRED PATHS "${LVGL_DIR}")
+     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../lvgl/CMakeLists.txt)
+         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lvgl ${CMAKE_BINARY_DIR}/lvgl)
+     else()
+@@ -32,7 +35,11 @@ target_include_directories(lv INTERFACE
+     $<INSTALL_INTERFACE:include>
+ )
+ 
+-target_link_libraries(lv INTERFACE lvgl)
++if(TARGET lvgl::lvgl)
++    target_link_libraries(lv INTERFACE lvgl::lvgl)
++else()
++    target_link_libraries(lv INTERFACE lvgl)
++endif()
+ 
+ target_compile_features(lv INTERFACE cxx_std_20)
+ 
+@@ -67,8 +74,27 @@ endif()
+ # Installation (optional - only if not building as subdirectory)
+ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+     include(GNUInstallDirs)
++    include(CMakePackageConfigHelpers)
++
++    install(TARGETS lv EXPORT lv-targets)
+ 
+     install(DIRECTORY include/lv
+         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+     )
++
++    install(EXPORT lv-targets
++        FILE lv-targets.cmake
++        NAMESPACE lv::
++        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/lv
++    )
++
++    configure_package_config_file(
++        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/lv-config.cmake.in"
++        "${CMAKE_CURRENT_BINARY_DIR}/lv-config.cmake"
++        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/lv"
++    )
++
++    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lv-config.cmake"
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/lv"
++    )
+ endif()
