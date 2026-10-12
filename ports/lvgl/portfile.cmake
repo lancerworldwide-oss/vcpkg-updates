@@ -20,13 +20,26 @@ endif()
 set(LV_CONF_H "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-lv_conf.h")
 
 if(VCPKG_TARGET_IS_EMSCRIPTEN)
+    if(DEFINED ENV{EMSCRIPTEN_ROOT} AND EXISTS "$ENV{EMSCRIPTEN_ROOT}/embuilder")
+        set(EMBUILDER "$ENV{EMSCRIPTEN_ROOT}/embuilder")
+    else()
+        find_program(EMBUILDER NAMES embuilder REQUIRED)
+    endif()
+    vcpkg_execute_required_process(
+        COMMAND "${EMBUILDER}" build sdl2
+        WORKING_DIRECTORY "${CURRENT_BUILDTREES_DIR}"
+        LOGNAME "embuilder-sdl2-${TARGET_TRIPLET}"
+    )
     file(WRITE "${LV_CONF_H}" [[
 #ifndef LV_CONF_H
 #define LV_CONF_H
+#define LV_MEM_SIZE (16 * 1024U * 1024U)
+#define LV_USE_SDL 1
+#define LV_SDL_DIRECT_EXIT 0
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
-        -DLV_USE_FIND_PACKAGE_SDL2=OFF
+        -DLV_USE_FIND_PACKAGE_SDL2=ON
     )
 elseif(VCPKG_TARGET_IS_WINDOWS)
     file(WRITE "${LV_CONF_H}" [[
