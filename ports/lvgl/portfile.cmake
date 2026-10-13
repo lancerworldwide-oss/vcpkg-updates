@@ -37,6 +37,9 @@ if(VCPKG_TARGET_IS_EMSCRIPTEN)
 #define LV_MEM_SIZE (16 * 1024U * 1024U)
 #define LV_USE_SDL 1
 #define LV_SDL_DIRECT_EXIT 0
+#define LV_USE_LODEPNG 1
+#define LV_USE_TJPGD 1
+#define LV_USE_GIF 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
@@ -58,6 +61,9 @@ elseif(VCPKG_TARGET_IS_WINDOWS)
 #define LV_USE_THORVG 1
 #define LV_USE_THORVG_INTERNAL 1
 #define LV_USE_SVG 1
+#define LV_USE_LODEPNG 1
+#define LV_USE_TJPGD 1
+#define LV_USE_GIF 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
@@ -88,6 +94,9 @@ elseif(VCPKG_TARGET_IS_LINUX)
 #define LV_USE_THORVG 1
 #define LV_USE_THORVG_INTERNAL 1
 #define LV_USE_SVG 1
+#define LV_USE_LODEPNG 1
+#define LV_USE_TJPGD 1
+#define LV_USE_GIF 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
