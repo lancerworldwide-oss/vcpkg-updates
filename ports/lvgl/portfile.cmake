@@ -40,6 +40,11 @@ if(VCPKG_TARGET_IS_EMSCRIPTEN)
 #define LV_USE_LODEPNG 1
 #define LV_USE_TJPGD 1
 #define LV_USE_GIF 1
+#define LV_USE_FS_STDIO 1
+#define LV_FS_STDIO_LETTER 'A'
+#define LV_USE_FONT_MANAGER 1
+#define LV_USE_TINY_TTF 1
+#define LV_TINY_TTF_FILE_SUPPORT 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
@@ -64,6 +69,9 @@ elseif(VCPKG_TARGET_IS_WINDOWS)
 #define LV_USE_LODEPNG 1
 #define LV_USE_TJPGD 1
 #define LV_USE_GIF 1
+#define LV_USE_FONT_MANAGER 1
+#define LV_USE_TINY_TTF 1
+#define LV_TINY_TTF_FILE_SUPPORT 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
@@ -97,6 +105,9 @@ elseif(VCPKG_TARGET_IS_LINUX)
 #define LV_USE_LODEPNG 1
 #define LV_USE_TJPGD 1
 #define LV_USE_GIF 1
+#define LV_USE_FONT_MANAGER 1
+#define LV_USE_TINY_TTF 1
+#define LV_TINY_TTF_FILE_SUPPORT 1
 #endif
 ]])
     set(LVGL_DRIVER_OPTIONS
