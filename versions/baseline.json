@@ -2,7 +2,7 @@
   "default": {
     "angelscript": {
       "baseline": "2.37.0",
-      "port-version": 2
+      "port-version": 3
     },
     "cpptotp": {
       "baseline": "2013.11.19",
