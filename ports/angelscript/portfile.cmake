@@ -16,6 +16,6 @@ vcpkg_copy_pdbs()
 
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/AngelScript)
 
-vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/sdk/docs/doxygen/source/doc_license.h")
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
