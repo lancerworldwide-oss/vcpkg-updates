@@ -2,7 +2,7 @@
   "default": {
     "angelscript": {
       "baseline": "2.37.0",
-      "port-version": 0
+      "port-version": 1
     },
     "cpptotp": {
       "baseline": "2013.11.19",
@@ -18,7 +18,7 @@
     },
     "lvgl": {
       "baseline": "9.6.0",
-      "port-version": 8
+      "port-version": 9
     },
     "sentry-native": {
       "baseline": "0.8.5.1",
