@@ -21,16 +21,6 @@ endif()
 set(LV_CONF_H "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-lv_conf.h")
 
 if(VCPKG_TARGET_IS_EMSCRIPTEN)
-    if(DEFINED ENV{EMSCRIPTEN_ROOT} AND EXISTS "$ENV{EMSCRIPTEN_ROOT}/embuilder")
-        set(EMBUILDER "$ENV{EMSCRIPTEN_ROOT}/embuilder")
-    else()
-        find_program(EMBUILDER NAMES embuilder REQUIRED)
-    endif()
-    vcpkg_execute_required_process(
-        COMMAND "${EMBUILDER}" build sdl2
-        WORKING_DIRECTORY "${CURRENT_BUILDTREES_DIR}"
-        LOGNAME "embuilder-sdl2-${TARGET_TRIPLET}"
-    )
     file(WRITE "${LV_CONF_H}" [[
 #ifndef LV_CONF_H
 #define LV_CONF_H
@@ -44,6 +34,34 @@ if(VCPKG_TARGET_IS_EMSCRIPTEN)
 #define LV_FS_STDIO_LETTER 'A'
 #define LV_USE_FS_MEMFS 1
 #define LV_FS_MEMFS_LETTER 'M'
+#define LV_USE_FONT_MANAGER 1
+#define LV_USE_TINY_TTF 1
+#define LV_TINY_TTF_FILE_SUPPORT 1
+#endif
+]])
+    set(LVGL_DRIVER_OPTIONS
+        -DLV_USE_FIND_PACKAGE_SDL2=ON
+    )
+elseif(VCPKG_TARGET_IS_MINGW)
+    file(WRITE "${LV_CONF_H}" [[
+#ifndef LV_CONF_H
+#define LV_CONF_H
+#define LV_MEM_SIZE (16 * 1024U * 1024U)
+#define LV_USE_SDL 1
+#define LV_SDL_DIRECT_EXIT 0
+#define LV_USE_FS_STDIO 1
+#define LV_FS_STDIO_LETTER 'A'
+#define LV_USE_FS_MEMFS 1
+#define LV_FS_MEMFS_LETTER 'M'
+#define LV_USE_FLOAT 1
+#define LV_USE_MATRIX 1
+#define LV_USE_VECTOR_GRAPHIC 1
+#define LV_USE_THORVG 1
+#define LV_USE_THORVG_INTERNAL 1
+#define LV_USE_SVG 1
+#define LV_USE_LODEPNG 1
+#define LV_USE_TJPGD 1
+#define LV_USE_GIF 1
 #define LV_USE_FONT_MANAGER 1
 #define LV_USE_TINY_TTF 1
 #define LV_TINY_TTF_FILE_SUPPORT 1
