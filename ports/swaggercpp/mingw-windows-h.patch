@@ -1,0 +1,12 @@
+diff --git a/src/ui.cpp b/src/ui.cpp
+--- a/src/ui.cpp
++++ b/src/ui.cpp
+@@ -16,7 +16,7 @@
+ #include "swaggercpp/writer.hpp"
+ 
+ #if defined(_WIN32)
+ #    define NOMINMAX
+-#    include <Windows.h>
++#    include <windows.h>
+ #    include <shellapi.h>
+ #endif
