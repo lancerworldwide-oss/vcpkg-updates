@@ -1,0 +1,287 @@
+--- a/src/drivers/display/drm/lv_linux_drm.c	2026-10-28 10:39:01.654271961 +0000
++++ b/src/drivers/display/drm/lv_linux_drm.c	2026-10-28 10:39:34.793539618 +0000
+@@ -16,8 +16,10 @@
+ #include <sys/mman.h>
+ #include <time.h>
+ #include <unistd.h>
++#include <stdlib.h>
+ #include <string.h>
+ 
++#include "lv_linux_drm_private.h"
+ #include <xf86drm.h>
+ #include <xf86drmMode.h>
+ #include <drm_fourcc.h>
+@@ -75,6 +77,12 @@
+     drmModePropertyPtr conn_props[128];
+     drm_buffer_t drm_bufs[BUFFER_CNT];
+     drm_buffer_t * act_buf;
++    lv_display_t * disp;
++    lv_linux_drm_select_mode_cb_t mode_select_cb;
++    void * logical_raw[BUFFER_CNT];
++    uint8_t * logical_bufs[BUFFER_CNT];
++    size_t logical_buf_size;
++    int back_idx;
+ #if LV_USE_LINUX_DRM_GBM_BUFFERS
+     struct gbm_device * gbm_device;
+ #endif
+@@ -114,6 +122,10 @@
+ static void drm_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
+ static void drm_dmabuf_set_active_buf(lv_event_t * event);
+ static void drm_del_event_cb(lv_event_t * event);
++static void drm_free_logical_buffers(drm_dev_t * drm_dev);
++static void drm_configure_draw_buffers(lv_display_t * disp, drm_dev_t * drm_dev);
++static void drm_resolution_event_cb(lv_event_t * event);
++static size_t drm_select_mode_index(drm_dev_t * drm_dev, drmModeConnector * conn);
+ 
+ /**********************
+  *  STATIC VARIABLES
+@@ -147,10 +159,12 @@
+         lv_free(drm_dev);
+         return NULL;
+     }
++    drm_dev->disp = disp;
+     lv_display_set_driver_data(disp, drm_dev);
+     lv_display_set_flush_wait_cb(disp, drm_flush_wait);
+     lv_display_set_flush_cb(disp, drm_flush);
+     lv_display_add_event_cb(disp, drm_del_event_cb, LV_EVENT_DELETE, NULL);
++    lv_display_add_event_cb(disp, drm_resolution_event_cb, LV_EVENT_RESOLUTION_CHANGED, NULL);
+ 
+     return disp;
+ }
+@@ -171,22 +185,30 @@
+     act_buf = lv_display_get_buf_active(disp);
+ 
+     if(drm_dev->act_buf == NULL) {
+-
+-        for(i = 0; i < BUFFER_CNT; i++) {
+-            if(act_buf->unaligned_data == drm_dev->drm_bufs[i].map) {
+-                drm_dev->act_buf = &drm_dev->drm_bufs[i];
+-                LV_LOG_TRACE("Set active buffer idx: %d", i);
+-                break;
++        if(lv_display_get_rotation(disp) != LV_DISPLAY_ROTATION_0) {
++            /* Draw buffers are system memory. Page-flip the other scanout buffer. */
++            drm_dev->act_buf = &drm_dev->drm_bufs[drm_dev->back_idx];
++            drm_dev->back_idx ^= 1;
++        }
++        else if(act_buf) {
++            for(i = 0; i < BUFFER_CNT; i++) {
++                if(act_buf->unaligned_data == drm_dev->drm_bufs[i].map) {
++                    drm_dev->act_buf = &drm_dev->drm_bufs[i];
++                    LV_LOG_TRACE("Set active buffer idx: %d", i);
++                    break;
++                }
+             }
+         }
+ 
+ #if LV_USE_LINUX_DRM_GBM_BUFFERS
+-        struct dma_buf_sync sync_req;
+-        sync_req.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_RW;
+-        int res;
++        if(drm_dev->act_buf) {
++            struct dma_buf_sync sync_req;
++            sync_req.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_RW;
++            int res;
+ 
+-        if((res = ioctl(drm_dev->act_buf->handle, DMA_BUF_IOCTL_SYNC, &sync_req)) != 0) {
+-            LV_LOG_ERROR("Failed to start DMA-BUF R/W SYNC res: %d", res);
++            if((res = ioctl(drm_dev->act_buf->handle, DMA_BUF_IOCTL_SYNC, &sync_req)) != 0) {
++                LV_LOG_ERROR("Failed to start DMA-BUF R/W SYNC res: %d", res);
++            }
+         }
+ #endif
+ 
+@@ -226,14 +248,13 @@
+ 
+     int32_t width = drm_dev->mmWidth;
+ 
+-    size_t buf_size = LV_MIN(drm_dev->drm_bufs[1].size, drm_dev->drm_bufs[0].size);
+-    uint32_t stride = drm_dev->drm_bufs[0].pitch;
+     /* Resolution must be set first because if the screen is smaller than the size passed
+      * to lv_display_create then the buffers aren't big enough for LV_DISPLAY_RENDER_MODE_DIRECT.
++     * drm_configure_draw_buffers keeps direct scanout at rotation 0 and moves the draw
++     * buffers to system memory when the display is rotated.
+      */
+     lv_display_set_resolution(disp, hor_res, ver_res);
+-    lv_display_set_buffers_with_stride(disp, drm_dev->drm_bufs[1].map, drm_dev->drm_bufs[0].map, buf_size,
+-                                       stride, LV_DISPLAY_RENDER_MODE_DIRECT);
++    drm_configure_draw_buffers(disp, drm_dev);
+ 
+ 
+     /* Set the handler that is called before a redraw occurs to set the active buffer/plane
+@@ -251,9 +272,10 @@
+ 
+ void lv_linux_drm_set_mode_cb(lv_display_t * disp, lv_linux_drm_select_mode_cb_t callback)
+ {
+-    LV_UNUSED(disp);
+-    LV_UNUSED(callback);
+-    LV_LOG_WARN("DRM without EGL support doesn't currently support setting a mode selection callback");
++    LV_CHECK_ARG(disp != NULL, return);
++    drm_dev_t * drm_dev = lv_display_get_driver_data(disp);
++    LV_CHECK_ARG(drm_dev != NULL, return);
++    drm_dev->mode_select_cb = callback;
+ }
+ /**********************
+  *   STATIC FUNCTIONS
+@@ -607,7 +629,8 @@
+     drm_dev->mmWidth = conn->mmWidth;
+     drm_dev->mmHeight = conn->mmHeight;
+ 
+-    lv_memcpy(&drm_dev->mode, &conn->modes[0], sizeof(drmModeModeInfo));
++    size_t mode_index = drm_select_mode_index(drm_dev, conn);
++    lv_memcpy(&drm_dev->mode, &conn->modes[mode_index], sizeof(drmModeModeInfo));
+ 
+     if(drmModeCreatePropertyBlob(drm_dev->fd, &drm_dev->mode, sizeof(drm_dev->mode),
+                                  &drm_dev->blob_id)) {
+@@ -615,8 +638,8 @@
+         goto free_res;
+     }
+ 
+-    drm_dev->width = conn->modes[0].hdisplay;
+-    drm_dev->height = conn->modes[0].vdisplay;
++    drm_dev->width = conn->modes[mode_index].hdisplay;
++    drm_dev->height = conn->modes[mode_index].vdisplay;
+ 
+     for(i = 0 ; i < res->count_encoders; i++) {
+         enc = drmModeGetEncoder(drm_dev->fd, res->encoders[i]);
+@@ -1073,6 +1096,15 @@
+ 
+     LV_ASSERT(drm_dev->act_buf != NULL);
+ 
++    const lv_display_rotation_t rotation = lv_display_get_rotation(disp);
++    if(rotation != LV_DISPLAY_ROTATION_0) {
++        lv_draw_buf_t * src = lv_display_get_buf_active(disp);
++        if(src && src->data) {
++            lv_draw_rotate(src->data, drm_dev->act_buf->map, (int32_t)src->header.w, (int32_t)src->header.h,
++                           (int32_t)src->header.stride, (int32_t)drm_dev->act_buf->pitch, rotation, src->header.cf);
++        }
++    }
++
+     if(drm_dmabuf_set_plane(drm_dev, drm_dev->act_buf)) {
+         LV_LOG_ERROR("Flush fail");
+         return;
+@@ -1198,6 +1230,8 @@
+         drm_dev->plane = NULL;
+     }
+ 
++    drm_free_logical_buffers(drm_dev);
++
+     if(drm_dev->fd >= 0) {
+         close(drm_dev->fd);
+         drm_dev->fd = -1;
+@@ -1207,6 +1241,116 @@
+     lv_free(drm_dev);
+ }
+ 
++static void drm_free_logical_buffers(drm_dev_t * drm_dev)
++{
++    for(int i = 0; i < BUFFER_CNT; ++i) {
++        free(drm_dev->logical_raw[i]);
++        drm_dev->logical_raw[i] = NULL;
++        drm_dev->logical_bufs[i] = NULL;
++    }
++    drm_dev->logical_buf_size = 0;
++}
++
++static uint8_t * drm_alloc_aligned(size_t size, void ** raw_out)
++{
++    size_t align = LV_DRAW_BUF_ALIGN;
++    if(align < sizeof(void *)) align = sizeof(void *);
++    void * raw = malloc(size + align);
++    if(!raw) {
++        *raw_out = NULL;
++        return NULL;
++    }
++    uintptr_t aligned = ((uintptr_t)raw + (align - 1u)) & ~((uintptr_t)align - 1u);
++    *raw_out = raw;
++    return (uint8_t *)aligned;
++}
++
++/* Rotation 0 draws straight into the dumb buffers. Any other rotation draws the
++ * logical frame into system memory (outside LVGL's pool) and drm_flush rotates
++ * that frame into the scanout buffer. */
++static void drm_configure_draw_buffers(lv_display_t * disp, drm_dev_t * drm_dev)
++{
++    if(!drm_dev || drm_dev->fd < 0 || !drm_dev->drm_bufs[0].map || drm_dev->drm_bufs[0].map == MAP_FAILED) {
++        return;
++    }
++
++    if(lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_0) {
++        drm_free_logical_buffers(drm_dev);
++        size_t buf_size = LV_MIN(drm_dev->drm_bufs[1].size, drm_dev->drm_bufs[0].size);
++        uint32_t stride = drm_dev->drm_bufs[0].pitch;
++        lv_display_set_buffers_with_stride(disp, drm_dev->drm_bufs[1].map, drm_dev->drm_bufs[0].map,
++                                           (uint32_t)buf_size, stride, LV_DISPLAY_RENDER_MODE_DIRECT);
++        return;
++    }
++
++    const int32_t logical_w = lv_display_get_horizontal_resolution(disp);
++    const int32_t logical_h = lv_display_get_vertical_resolution(disp);
++    const int32_t original_h = lv_display_get_original_vertical_resolution(disp);
++    if(logical_w <= 0 || logical_h <= 0 || original_h <= 0) {
++        return;
++    }
++
++    const lv_color_format_t cf = lv_display_get_color_format(disp);
++    const uint32_t logical_stride = lv_draw_buf_width_to_stride((uint32_t)logical_w, cf);
++    const int32_t guard_h = logical_h > original_h ? logical_h : original_h;
++    const uint64_t bytes = (uint64_t)logical_stride * (uint64_t)guard_h;
++    if(logical_stride == 0 || bytes == 0 || bytes > UINT32_MAX) {
++        LV_LOG_ERROR("DRM rotation buffer size is invalid");
++        return;
++    }
++
++    if(drm_dev->logical_buf_size != (size_t)bytes || !drm_dev->logical_bufs[0] || !drm_dev->logical_bufs[1]) {
++        drm_free_logical_buffers(drm_dev);
++        for(int i = 0; i < BUFFER_CNT; ++i) {
++            drm_dev->logical_bufs[i] = drm_alloc_aligned((size_t)bytes, &drm_dev->logical_raw[i]);
++            if(!drm_dev->logical_bufs[i]) {
++                LV_LOG_ERROR("DRM rotation buffer allocation failed");
++                drm_free_logical_buffers(drm_dev);
++                return;
++            }
++            lv_memzero(drm_dev->logical_bufs[i], (size_t)bytes);
++        }
++        drm_dev->logical_buf_size = (size_t)bytes;
++    }
++
++    /* set_buffers sizes the draw buffer from the unrotated resolution, so the
++     * allocation covers stride * max(logical, original) height. Refresh reshapes
++     * the header to the logical size, which still fits. */
++    lv_display_set_buffers_with_stride(disp, drm_dev->logical_bufs[1], drm_dev->logical_bufs[0],
++                                       (uint32_t)bytes, logical_stride, LV_DISPLAY_RENDER_MODE_DIRECT);
++}
++
++static void drm_resolution_event_cb(lv_event_t * event)
++{
++    if(lv_event_get_code(event) != LV_EVENT_RESOLUTION_CHANGED) return;
++    lv_display_t * disp = lv_event_get_target(event);
++    drm_dev_t * drm_dev = lv_display_get_driver_data(disp);
++    drm_configure_draw_buffers(disp, drm_dev);
++}
++
++static size_t drm_select_mode_index(drm_dev_t * drm_dev, drmModeConnector * conn)
++{
++    if(!drm_dev->mode_select_cb || !drm_dev->disp || conn->count_modes <= 0) {
++        return 0;
++    }
++
++    lv_linux_drm_mode_t * modes = lv_malloc(sizeof(lv_linux_drm_mode_t) * (size_t)conn->count_modes);
++    if(!modes) {
++        LV_LOG_WARN("Failed to allocate memory for drm modes");
++        return 0;
++    }
++    for(int i = 0; i < conn->count_modes; i++) {
++        modes[i].mode_info = &conn->modes[i];
++    }
++    size_t mode_index = drm_dev->mode_select_cb(drm_dev->disp, modes, (size_t)conn->count_modes);
++    lv_free(modes);
++    if(mode_index >= (size_t)conn->count_modes) {
++        LV_LOG_WARN("DRM mode callback returned an out of range index; using mode 0");
++        return 0;
++    }
++    return mode_index;
++}
++
+ static uint32_t tick_get_cb(void)
+ {
+     struct timespec t;

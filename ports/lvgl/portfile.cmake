@@ -5,6 +5,7 @@ vcpkg_from_git(
     PATCHES
         patches/0001-sdl-skip-expose-redraw.patch
         patches/0002-sdl-follow-window-size.patch
+        patches/0003-linux-drm-mode-select-rotation.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -106,6 +107,7 @@ elseif(VCPKG_TARGET_IS_LINUX)
 #ifndef LV_CONF_H
 #define LV_CONF_H
 #define LV_MEM_SIZE (16 * 1024U * 1024U)
+#define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_XRGB8888
 #define LV_USE_SDL 1
 #define LV_SDL_DIRECT_EXIT 0
 #define LV_USE_X11 1
@@ -148,8 +150,9 @@ elseif(VCPKG_TARGET_IS_LINUX)
         -DLV_USE_PKG_CONFIG_GSTREAMER=ON
     )
     if(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+        # System pkg-config goes last so the vcpkg tree (FFmpeg included) is found first.
         if(DEFINED ENV{PKG_CONFIG_PATH} AND NOT "$ENV{PKG_CONFIG_PATH}" STREQUAL "")
-            set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+            set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/lib/aarch64-linux-gnu/pkgconfig")
         else()
             set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
         endif()
