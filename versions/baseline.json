@@ -22,7 +22,7 @@
     },
     "lvgl": {
       "baseline": "9.6.0",
-      "port-version": 10
+      "port-version": 11
     },
     "nanodbc": {
       "baseline": "2.14.0",
