@@ -1,0 +1,23 @@
+--- a/src/drivers/display/drm/lv_linux_drm.c
++++ b/src/drivers/display/drm/lv_linux_drm.c
+@@ -1097,7 +1097,9 @@ static void drm_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_
+     LV_ASSERT(drm_dev->act_buf != NULL);
+ 
+     const lv_display_rotation_t rotation = lv_display_get_rotation(disp);
+-    if(rotation != LV_DISPLAY_ROTATION_0) {
++    /* Matrix rotation draws into the panel-sized buffer. Rotating that
++     * buffer again uses a stride that does not match the scanout map. */
++    if(rotation != LV_DISPLAY_ROTATION_0 && !lv_display_get_matrix_rotation(disp)) {
+         lv_draw_buf_t * src = lv_display_get_buf_active(disp);
+         if(src && src->data) {
+             lv_draw_rotate(src->data, drm_dev->act_buf->map, (int32_t)src->header.w, (int32_t)src->header.h,
+@@ -1274,7 +1276,8 @@ static void drm_configure_draw_buffers(lv_display_t * disp, drm_dev_t * drm_dev)
+         return;
+     }
+ 
+-    if(lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_0) {
++    if(lv_display_get_rotation(disp) == LV_DISPLAY_ROTATION_0 ||
++       lv_display_get_matrix_rotation(disp)) {
+         drm_free_logical_buffers(drm_dev);
+         size_t buf_size = LV_MIN(drm_dev->drm_bufs[1].size, drm_dev->drm_bufs[0].size);
+         uint32_t stride = drm_dev->drm_bufs[0].pitch;

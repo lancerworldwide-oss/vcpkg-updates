@@ -6,6 +6,7 @@ vcpkg_from_git(
         patches/0001-sdl-skip-expose-redraw.patch
         patches/0002-sdl-follow-window-size.patch
         patches/0003-linux-drm-mode-select-rotation.patch
+        patches/0004-linux-drm-matrix-rotation.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -151,12 +152,32 @@ elseif(VCPKG_TARGET_IS_LINUX)
         -DLV_USE_PKG_CONFIG_GSTREAMER=ON
     )
     if(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
-        # System pkg-config goes last so the vcpkg tree (FFmpeg included) is found first.
+        # The arm64 preset sets PKG_CONFIG_PATH to the Debian directory alone.
+        # pkgconf also prepends PKG_CONFIG_SYSROOT_DIR onto absolute -L paths, so
+        # a vcpkg .pc file would be rewritten off the FFmpeg 8 prefix and the
+        # link would keep Debian FFmpeg 5. vcpkg's prefix stays first; Debian
+        # stays last for drm, wayland, and the other system packages. Debug and
+        # release configures run in parallel, so each one selects its own prefix
+        # after project() starts.
+        set(_lvgl_pc_path "${CURRENT_INSTALLED_DIR}/lib/pkgconfig")
         if(DEFINED ENV{PKG_CONFIG_PATH} AND NOT "$ENV{PKG_CONFIG_PATH}" STREQUAL "")
-            set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/lib/aarch64-linux-gnu/pkgconfig")
-        else()
-            set(ENV{PKG_CONFIG_PATH} "/usr/lib/aarch64-linux-gnu/pkgconfig")
+            set(_lvgl_pc_path "${_lvgl_pc_path}:$ENV{PKG_CONFIG_PATH}")
         endif()
+        set(ENV{PKG_CONFIG_PATH} "${_lvgl_pc_path}:/usr/lib/aarch64-linux-gnu/pkgconfig")
+        unset(ENV{PKG_CONFIG_SYSROOT_DIR})
+        unset(_lvgl_pc_path)
+        file(WRITE "${CURRENT_BUILDTREES_DIR}/arm64-pkgconfig.cmake"
+"if(CMAKE_BUILD_TYPE STREQUAL \"Debug\")
+    set(_lvgl_pc \"${CURRENT_INSTALLED_DIR}/debug/lib/pkgconfig\")
+else()
+    set(_lvgl_pc \"${CURRENT_INSTALLED_DIR}/lib/pkgconfig\")
+endif()
+set(ENV{PKG_CONFIG_PATH} \"\${_lvgl_pc}:/usr/lib/aarch64-linux-gnu/pkgconfig\")
+unset(ENV{PKG_CONFIG_SYSROOT_DIR})
+")
+        list(APPEND LVGL_DRIVER_OPTIONS
+            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${CURRENT_BUILDTREES_DIR}/arm64-pkgconfig.cmake"
+        )
     endif()
 else()
     file(WRITE "${LV_CONF_H}" [[
@@ -196,6 +217,7 @@ vcpkg_cmake_configure(
         LV_USE_PKG_CONFIG_XKBCOMMON
         LV_USE_PKG_CONFIG_FFMPEG
         LV_USE_PKG_CONFIG_GSTREAMER
+        CMAKE_PROJECT_TOP_LEVEL_INCLUDES
         Python_EXECUTABLE
 )
 
